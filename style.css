@@ -1,0 +1,37 @@
+:root {
+    --box-size: 100px;
+    --gap-size: 10px;
+}
+
+body {
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#container {
+    width: calc(calc(var(--box-size) * 3) + calc(var(--gap-size) * 2));
+}
+
+#top, #bottom{
+    height: 50px;
+}
+
+#board {
+    width: min-content;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--gap-size);
+    background-color: black;
+    justify-items: start;
+    margin: 1rem 0 1rem 0;
+}
+
+#board div {
+    height: var(--box-size);
+    background-color: white;
+    aspect-ratio: 1;
+}

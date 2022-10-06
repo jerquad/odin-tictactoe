@@ -1,9 +1,16 @@
+@import url('https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@600&display=swap');
+
 :root {
     --box-size: 100px;
     --gap-size: 10px;
+    --fade-color: grey;
+    --set-color: black;
+    --background: white;
 }
 
 body {
+    font-family: 'Azeret Mono', monospace, sans-serif;
+    font-size: 40px;
     height: 100vh;
     margin: 0;
     padding: 0;
@@ -30,8 +37,38 @@ body {
     margin: 1rem 0 1rem 0;
 }
 
+.no-play {
+    background-color: var(--fade-color) !important;
+}
+
 #board div {
+    text-align: center;
+    line-height: var(--box-size);
+    margin:0;
+    padding: auto;
+    font-size: 2em;
     height: var(--box-size);
     background-color: white;
     aspect-ratio: 1;
+}
+
+.hover {
+    color: var(--fade-color);
+}
+
+#bottom {
+    display: flex;
+    justify-content: center;
+}
+
+button {
+    font-family: inherit;
+    background-color: var(--background);
+    border: 2px solid var(--background);
+    font-size: 40px;
+    width: 100%;
+}
+
+button:hover {
+    color: var(--fade-color);
 }

@@ -19,13 +19,17 @@ const gameBoard = (() => {
     const getPlayer = () => thisTurn.getSymbol();
     const getOpponent = () => notThisTurn.getSymbol();
     const getState = (index) => state[index];
+    const getWin = () => winIndex;
     const setInPlay = () => inPlay = !inPlay;
     const setState = (index, value) => state[index] = value;
 
+    // wipes game data for new game
     const resetState = () => {
         state.fill(' ');
         winIndex = null;
     }
+
+    // flip flops the current player/opponent
     const togglePlayer = () => {
         thisTurn = (thisTurn == players[0]) ? players[1] : players[0];
         notThisTurn = (notThisTurn == players[1]) ? players[0] : players[1];
@@ -33,8 +37,10 @@ const gameBoard = (() => {
 
     // End state checkers
     const tieState = () => {
-        (!state.includes(' ') && winIndex == null);
+        if (!state.includes(' ') && winIndex == null) return true;
     }
+
+    // Has a side effect of cacheing any winning 'line' into winIndex
     const winState = (index) => {
         if (index % 2 == 0 && state[4] != ' ') {
             if (state[0] == state[4] && 
@@ -61,10 +67,12 @@ const gameBoard = (() => {
                 return true;}
         return false;
     }
-
-    const getWin = () => winIndex;
     
-
+    /*
+        minimax algorith first checks to see if the previous turns call resulted in an endstate,
+        returning its idealized max score, penalized by the depth of the recursion. Otherwise
+        will check each possible state for win conditions, returning the best result
+    */
     const miniMax = (depth, isMaxTurn, win) => {
         if (tieState()) {
             return 0;
@@ -100,7 +108,7 @@ const gameBoard = (() => {
         }
     }
 
-    // cycle through all states and returns the optimal move
+    // cycle through all states and returns the optimal move, works as a base case for minimax
     const cpuTurn = () => {
         togglePlayer();
         let bestMove = [ -1, -11 ];
@@ -108,6 +116,7 @@ const gameBoard = (() => {
             if (getState(i) == ' ') {
                 setState(i, getPlayer());
                 const max = miniMax(0, false, winState(i));
+                console.log(max);
                 if (max > bestMove[1]) {
                     bestMove = [ i, max ];
                 }
@@ -118,9 +127,6 @@ const gameBoard = (() => {
         return bestMove[0];
     }
 
-    // --- TO DELETE FOR BUG TRACKING ---
-    const printState = () => console.log(state);
-
     return {
         cpuTurn,
         getInPlay,
@@ -128,7 +134,6 @@ const gameBoard = (() => {
         getPlayer,
         getState,
         getWin,
-        printState,
         resetState,
         setInPlay,
         setState,
@@ -140,18 +145,10 @@ const gameBoard = (() => {
 
 // Controller for interacting with the DOM
 const displayController = (() => {
+
+    // Identifies if game is single or multiplayer
     let onePlayer = false;
     
-    const newGame = () => {
-        for (const block of document.getElementById('board').children) {
-            block.innerHTML = ' ';
-            block.className = ' ';
-        }
-        gameBoard.resetState();
-        gameBoard.setInPlay();
-        document.getElementById('board').classList.remove('no-play');
-    }
-
     // Binds the various buttons for new games
     const bindNewGame = (element, singlePlay) => {
         element.addEventListener('click', (e) => {
@@ -163,14 +160,6 @@ const displayController = (() => {
         })
     }
 
-    const makeButton = (text) => {
-        const button = document.createElement('button');
-        button.setAttribute('type', 'button');
-        button.classList.add('start-type');
-        button.innerHTML = text;
-        return button;
-    }
-
     // fades out the display area after game, highlighting the winning move
     const disableDisplay = () => {
         document.getElementById('board').classList.add('no-play');
@@ -179,6 +168,37 @@ const displayController = (() => {
                 block.classList.add('no-block');
             }
         }
+    }
+
+    // Confirms with the gameboard if the game is over
+    const isGameOver = (index) => {
+        if (gameBoard.winState(index) || gameBoard.tieState()) return true;
+        return false;
+    }
+
+    // Generic button maker
+    const makeButton = (text) => {
+        const button = document.createElement('button');
+        button.setAttribute('type', 'button');
+        button.classList.add('start-type');
+        button.innerHTML = text;
+        return button;
+    }
+
+    // Clears the board, makes calls to the gameboard to clear its functions, allows for player action
+    const newGame = () => {
+        for (const block of document.getElementById('board').children) {
+            block.innerHTML = ' ';
+            block.className = ' ';
+        }
+        gameBoard.resetState();
+        gameBoard.setInPlay();
+        document.getElementById('board').classList.remove('no-play');
+    }
+
+    const setBlock = (block, toSet) => {
+        block.innerHTML = toSet;
+        block.className = '';
     }
 
     // confirms if the game is over and sets the board accordingly
@@ -193,6 +213,15 @@ const displayController = (() => {
         gameBoard.setInPlay();
     }
 
+    // Calls a cpu turn, updates the gameboard and return the selected move
+    const soloPlay = () => {
+        const move = gameBoard.cpuTurn();
+        setBlock(document.querySelector(
+            `#board :nth-child(${move + 1})`), 
+            gameBoard.getPlayer());
+        return move;  
+    }
+
     // Player selectors on initial load-in
     (() => {
         const p1Button = makeButton('ONE PLAYER');
@@ -202,25 +231,6 @@ const displayController = (() => {
         bindNewGame(p2Button, false);
         document.getElementById('bottom').appendChild(p2Button);
     })();
-
-    const setBlock = (block, toSet) => {
-        block.innerHTML = toSet;
-        block.className = '';
-    }
-
-    const soloPlay = () => {
-        const move = gameBoard.cpuTurn();
-        setBlock(document.querySelector(
-            `#board :nth-child(${move + 1})`), 
-            gameBoard.getPlayer());
-        console.log('them: ' + gameBoard.printState());
-        return move;  
-    }
-
-    const isGameOver = (index) => {
-        if (gameBoard.winState(index) || gameBoard.tieState()) return true;
-        return false;
-    }
     
     // Bindings for each square on the gameboard
     for (const block of document.getElementById('board').children) {
@@ -239,10 +249,9 @@ const displayController = (() => {
             setBlock(e.target, '');
         });
 
-        // Sets all actions taken on a click
+        // Sets all actions taken on a click, checks for winstate, changes turn
         block.addEventListener('click', (e) => {
             if (gameBoard.getState(index) != ' ' || !gameBoard.getInPlay()) { return; }
-            console.log('you: ' + gameBoard.printState());
             e.target.classList.remove('hover');
             gameBoard.setState(index, gameBoard.getPlayer());
             if (isGameOver(index) || (onePlayer && isGameOver(soloPlay()))) { 

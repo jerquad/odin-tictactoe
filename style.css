@@ -3,7 +3,7 @@
 :root {
     --box-size: 100px;
     --gap-size: 10px;
-    --fade-color: grey;
+    --fade-color: rgb(202, 202, 202);
     --set-color: black;
     --background: white;
 }

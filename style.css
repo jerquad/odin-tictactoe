@@ -41,6 +41,10 @@ body {
     background-color: var(--fade-color) !important;
 }
 
+.no-block {
+    color: var(--fade-color);
+}
+
 #board div {
     text-align: center;
     line-height: var(--box-size);
